@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-// ¡Importante! Agregamos la importación de Supabase
+// Importación necesaria para leer la sesión en el redirect
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../features/auth/presentation/controllers/auth_state.dart';
@@ -32,17 +32,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: AppRoutes.splash,
     refreshListenable: _AuthListenable(ref),
     redirect: (context, state) {
-      // 1. Verificamos la sesión de Supabase de forma síncrona.
-      // Esto es clave para atrapar la sesión inmediatamente al regresar de Google.
+      // 1. Verificamos la sesión de Supabase de forma síncrona para detectar el retorno de Google
       final session = Supabase.instance.client.auth.currentSession;
       
-      // 2. Combinamos Riverpod con la verificación síncrona.
+      // 2. Evaluamos si está logueado
       final isLoggedIn = session != null || authState.maybeWhen(
         authenticated: (_) => true,
         orElse: () => false,
       );
       
-      // 3. Usamos state.uri.path para ignorar el '?code=...' en la URL
+      // 3. Usamos state.uri.path en vez de matchedLocation para limpiar los parámetros (?code=...)
       final path = state.uri.path;
       final isOnSplash = path == AppRoutes.splash;
       final isOnAuth = path == AppRoutes.login || path == AppRoutes.register;
@@ -55,10 +54,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
       if (isUnknown && !isOnSplash) return AppRoutes.splash;
 
-      // Si inició sesión (ej. regresó de Google) y está en Auth, lo mandamos al home
+      // Redirecciones
       if (isLoggedIn && (isOnAuth || isOnSplash)) return AppRoutes.home;
-      
-      // Si no tiene sesión y navega a una ruta protegida, al login
       if (!isLoggedIn && !isOnAuth && !isOnSplash) return AppRoutes.login;
 
       return null;
