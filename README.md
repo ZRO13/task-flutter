@@ -1,4 +1,3 @@
-# VOLT ⚡
 
 **Gestión de tareas y productividad basada en Voltios.**
 Proyecto final — *Aplicaciones Móviles* (Grupo 9-2) — Ingeniería de Software.
