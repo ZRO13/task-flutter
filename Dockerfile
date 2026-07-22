@@ -10,7 +10,6 @@ ENV PATH="/usr/local/flutter/bin:/usr/local/flutter/bin/cache/dart-sdk/bin:${PAT
 
 ENV TAR_OPTIONS="--no-same-owner"
 RUN git config --global --add safe.directory /usr/local/flutter
-# -----------------------------
 
 # Configurar Flutter para web
 RUN flutter channel stable
@@ -26,9 +25,16 @@ COPY . .
 # Descargar las dependencias
 RUN flutter pub get
 
-# Compilar la aplicación para web
-# (Si necesitas pasar variables de entorno en la compilación, usa: RUN flutter build web --dart-define=VARIABLE=valor)
-RUN flutter build web
+# 1. Declarar las variables que Render inyectará durante el build
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_ANON_KEY
+ARG GOOGLE_CLIENT_ID
+
+# 2. Compilar inyectando esas variables al código de Flutter
+RUN flutter build web \
+    --dart-define=VITE_SUPABASE_URL=$VITE_SUPABASE_URL \
+    --dart-define=VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY \
+    --dart-define=GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
 
 # --- Etapa 2: Servidor (Deploy) ---
 FROM nginx:alpine
