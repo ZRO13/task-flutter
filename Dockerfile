@@ -25,6 +25,7 @@ COPY . .
 # Descargar las dependencias
 RUN flutter pub get
 
+# --- INYECCIÓN DE VARIABLES DE RENDER ---
 # 1. Declarar las variables que Render inyectará durante el build
 ARG VITE_SUPABASE_URL
 ARG VITE_SUPABASE_ANON_KEY
@@ -44,6 +45,17 @@ RUN rm -rf /usr/share/nginx/html/*
 
 # Copiar los archivos compilados desde la Etapa 1
 COPY --from=build-env /app/build/web /usr/share/nginx/html
+
+# --- CONFIGURACIÓN PARA FLUTTER WEB (SPA) ---
+# Le decimos a Nginx que devuelva index.html para cualquier ruta (ej. /login) para evitar el error 404
+RUN echo 'server { \
+    listen 80; \
+    location / { \
+        root /usr/share/nginx/html; \
+        index index.html index.htm; \
+        try_files $uri $uri/ /index.html; \
+    } \
+}' > /etc/nginx/conf.d/default.conf
 
 # Exponer el puerto 80 para tráfico HTTP
 EXPOSE 80
