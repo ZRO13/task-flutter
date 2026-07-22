@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+// Agregamos kReleaseMode para la redirección inteligente
+import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -8,6 +9,7 @@ import '../../../../core/config/supabase_client.dart';
 import '../domain/entities/app_user.dart';
 import '../domain/repositories/auth_repository.dart';
 import 'package:volt/core/config/app_config.dart';
+
 /// Implementación concreta de [AuthRepository] usando Supabase.
 ///
 /// Pertenece a la capa de Datos: traduce las entidades y respuestas de
@@ -80,7 +82,10 @@ class AuthRepositoryImpl implements AuthRepository {
     if (kIsWeb) {
       await _client.auth.signInWithOAuth(
         OAuthProvider.google,
-        redirectTo: '${Uri.base.origin}/login',
+        // 👇 REDIRECCIÓN INTELIGENTE 👇
+        redirectTo: kReleaseMode 
+            ? 'https://task-flutter.onrender.com/' 
+            : 'http://localhost:3000/',
       );
       // En web, el redirect maneja la sesión; el stream la propagará.
       return _map(_client.auth.currentUser) ??
