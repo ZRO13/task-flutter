@@ -1,7 +1,4 @@
-import 'dart:io' show Platform;
-
-// Agregamos kReleaseMode para la redirección inteligente
-import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode;
+import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode, defaultTargetPlatform, TargetPlatform;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -127,7 +124,8 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> signOut() async {
     // Cierra sesión de Google si estaba activa (solo en plataformas nativas).
     try {
-      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+      // 👇 Se reemplazó Platform.isAndroid por defaultTargetPlatform 👇
+      if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS)) {
         await GoogleSignIn().signOut();
       }
     } catch (_) {
