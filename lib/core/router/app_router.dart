@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 // Importación necesaria para leer la sesión en el redirect
-import 'package:supabase_flutter/supabase_flutter.dart';
-
+import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 import '../../features/auth/presentation/controllers/auth_state.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
