@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+// ¡Importante! Agregamos la importación de Supabase
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../features/auth/presentation/controllers/auth_state.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
@@ -30,13 +32,20 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: AppRoutes.splash,
     refreshListenable: _AuthListenable(ref),
     redirect: (context, state) {
-      final isLoggedIn = authState.maybeWhen(
+      // 1. Verificamos la sesión de Supabase de forma síncrona.
+      // Esto es clave para atrapar la sesión inmediatamente al regresar de Google.
+      final session = Supabase.instance.client.auth.currentSession;
+      
+      // 2. Combinamos Riverpod con la verificación síncrona.
+      final isLoggedIn = session != null || authState.maybeWhen(
         authenticated: (_) => true,
         orElse: () => false,
       );
-      final isOnSplash = state.matchedLocation == AppRoutes.splash;
-      final isOnAuth = state.matchedLocation == AppRoutes.login ||
-          state.matchedLocation == AppRoutes.register;
+      
+      // 3. Usamos state.uri.path para ignorar el '?code=...' en la URL
+      final path = state.uri.path;
+      final isOnSplash = path == AppRoutes.splash;
+      final isOnAuth = path == AppRoutes.login || path == AppRoutes.register;
 
       // Mientras se desconoce el estado, no redirigimos fuera del splash.
       final isUnknown = authState.maybeWhen(
@@ -46,7 +55,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
       if (isUnknown && !isOnSplash) return AppRoutes.splash;
 
+      // Si inició sesión (ej. regresó de Google) y está en Auth, lo mandamos al home
       if (isLoggedIn && (isOnAuth || isOnSplash)) return AppRoutes.home;
+      
+      // Si no tiene sesión y navega a una ruta protegida, al login
       if (!isLoggedIn && !isOnAuth && !isOnSplash) return AppRoutes.login;
 
       return null;
