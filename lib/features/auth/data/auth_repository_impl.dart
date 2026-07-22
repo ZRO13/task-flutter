@@ -7,7 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/config/supabase_client.dart';
 import '../domain/entities/app_user.dart';
 import '../domain/repositories/auth_repository.dart';
-
+import 'package:volt/core/config/app_config.dart';
 /// Implementación concreta de [AuthRepository] usando Supabase.
 ///
 /// Pertenece a la capa de Datos: traduce las entidades y respuestas de
